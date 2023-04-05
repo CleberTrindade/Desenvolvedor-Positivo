@@ -221,5 +221,32 @@ namespace ProcurandoApartamento.Test.Controllers
             apartamento1.Id = 0;
             apartamento1.Should().NotBe(apartamento2);
         }
+
+        [Fact]
+        public async Task GetMelhorApartamentoDeveRetornarQuadra4()
+        {
+            // Initialize the lista
+            string[] lista = { "ESCOLA", "ACADEMIA" };
+
+            // Melhor apartamento
+            var response = await _client.PostAsync("/api/apartamentos/MelhorApartamento", TestUtil.ToJsonContent(lista));
+
+            // Validando retorno
+            response.Should().Equals("QUADRA 4");
+
+        }
+
+        [Fact]
+        public async Task GetMelhorApartamentoDeveRetornarQuadra1()
+        {
+            // Initialize the lista
+            string[] lista = { "ESCOLA", "MERCADO", "ACADEMIA" };
+
+            // Melhor apartamento
+            var response = await _client.PostAsync("/api/apartamentos/MelhorApartamento", TestUtil.ToJsonContent(lista));
+
+            // Validando retorno
+            response.Should().Equals("QUADRA 1");
+        }
     }
 }

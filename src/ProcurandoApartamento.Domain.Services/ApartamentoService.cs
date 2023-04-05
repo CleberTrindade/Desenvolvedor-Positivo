@@ -3,6 +3,8 @@ using JHipsterNet.Core.Pagination;
 using ProcurandoApartamento.Domain.Services.Interfaces;
 using ProcurandoApartamento.Domain.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System;
 
 namespace ProcurandoApartamento.Domain.Services
 {
@@ -40,6 +42,37 @@ namespace ProcurandoApartamento.Domain.Services
         {
             await _apartamentoRepository.DeleteByIdAsync(id);
             await _apartamentoRepository.SaveChangesAsync();
+        }
+
+        public async Task<string> FindTheBest(string[] estabelecimentos)
+        {
+            var quadra = 0;
+
+            var result = await _apartamentoRepository.QueryHelper()
+                        .Filter(a => a.ApartamentoDisponivel == true
+                                  && a.EstabelecimentoExiste == true
+                                  && estabelecimentos.Contains(a.Estabelecimento))
+                        .GetAllAsync();
+
+            var quadrasComMaisDeUmRegistro = result
+            .GroupBy(a => a.Quadra)
+            .Where(g => g.Count() > 1).ToList();
+
+            if (quadrasComMaisDeUmRegistro.Any())
+            {
+                quadra = quadrasComMaisDeUmRegistro
+                    .SelectMany(g => g)
+                    .OrderBy(a => Array.IndexOf(estabelecimentos, a.Estabelecimento))
+                    .FirstOrDefault().Quadra;
+
+                return $"QUADRA {quadra}";
+            }
+
+            quadra = estabelecimentos.Count() > 1
+                    ? result.OrderBy(a => Array.IndexOf(estabelecimentos, a.Estabelecimento)).FirstOrDefault().Quadra
+                    : result.OrderByDescending(a => a.Quadra).FirstOrDefault().Quadra;
+
+            return $"QUADRA {quadra}";
         }
     }
 }
